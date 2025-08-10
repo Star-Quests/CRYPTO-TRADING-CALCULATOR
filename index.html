@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Crypto Trade Calculator</title>
+  <style>
+    :root {
+      --bg-dark: #121212;
+      --bg-darker: #0a0a0a;
+      --card-bg: #1e1e1e;
+      --accent: #3a86ff;
+      --text: #e0e0e0;
+      --text-light: #ffffff;
+      --profit: #4caf50;
+      --loss: #f44336;
+      --warning: #ff9800;
+      --border: #333333;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: var(--bg-darker);
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: var(--text-light);
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .mode-selector {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      background: var(--card-bg);
+      border: none;
+      color: var(--text);
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 0 5px;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .input-section {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      color: var(--text-light);
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-size: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .result-section {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .result-title {
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: var(--text-light);
+      font-size: 18px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+    }
+
+    .result-label {
+      font-weight: 500;
+    }
+
+    .result-value {
+      font-weight: bold;
+    }
+
+    .profit {
+      color: var(--profit);
+    }
+
+    .loss {
+      color: var(--loss);
+    }
+
+    .warning {
+      color: var(--warning);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 15px 0;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔷 Crypto Trade Calculator</h1>
+
+    <div class="mode-selector">
+      <button class="mode-btn active" id="tpSlBtn">📊 TP/SL Mode</button>
+      <button class="mode-btn" id="trailingBtn">📉 Trailing Stop Mode</button>
+    </div>
+
+    <div class="input-section">
+      <div class="section-title">🔹 Trade Parameters</div>
+      
+      <label>Select Asset</label>
+      <select id="asset">
+        <option value="btc">Bitcoin (BTC)</option>
+        <option value="eth">Ethereum (ETH)</option>
+        <option value="sol">Solana (SOL)</option>
+      </select>
+
+      <label>Entry Price ($)</label>
+      <input type="number" id="entryPrice" step="0.000001" placeholder="e.g. 50000">
+
+      <label>Amount (Asset Units)</label>
+      <input type="number" id="amount" step="0.000001" placeholder="e.g. 0.5">
+
+      <label>Target Profit ($)</label>
+      <input type="number" id="targetProfit" step="0.000001" placeholder="e.g. 1000">
+
+      <label>Maximum Capital Loss ($)</label>
+      <input type="number" id="maxCapitalLoss" step="0.000001" placeholder="e.g. 500" value="100">
+      
+      <div id="trailingInput" style="display: none;">
+        <label>Trailing Stop Distance ($)</label>
+        <input type="number" id="trailingDistance" step="0.000001" placeholder="e.g. 200">
+      </div>
+    </div>
+
+    <button onclick="calculateTrade()">💹 Calculate Trade</button>
+
+    <div class="result-section" id="tpSlResult">
+      <div class="result-title">📊 TP/SL Results</div>
+      
+      <div class="result-row">
+        <span class="result-label">💰 Total Capital:</span>
+        <span class="result-value" id="capitalValue">$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">🎯 Take Profit Price:</span>
+        <span class="result-value" id="tpPrice">$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">🛑 Stop Loss Price:</span>
+        <span class="result-value" id="slPrice">$0.00</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="result-row">
+        <span class="result-label">📈 Potential Profit:</span>
+        <span class="result-value profit" id="potentialProfit">+$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">📉 Potential Loss:</span>
+        <span class="result-value loss" id="potentialLoss">-$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">⚠️ Capital if SL Hits:</span>
+        <span class="result-value warning" id="capitalIfSL">$0.00</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="result-row">
+        <span class="result-label">📊 ROI:</span>
+        <span class="result-value" id="roiValue">0%</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">⚖️ Risk/Reward:</span>
+        <span class="result-value" id="rrRatio">1:0</span>
+      </div>
+    </div>
+
+    <div class="result-section" id="trailingResult">
+      <div class="result-title">📉 Trailing Stop Results</div>
+      
+      <div class="result-row">
+        <span class="result-label">💰 Total Capital:</span>
+        <span class="result-value" id="trailingCapital">$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">🎯 Take Profit Price:</span>
+        <span class="result-value" id="trailingTP">$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">🛑 Stop Loss Price:</span>
+        <span class="result-value" id="trailingSL">$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">📌 Activation Price:</span>
+        <span class="result-value" id="activationPrice">$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">🔄 Trailing Stop Price:</span>
+        <span class="result-value" id="trailingStopPrice">$0.00</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="result-row">
+        <span class="result-label">📈 Potential Profit:</span>
+        <span class="result-value profit" id="trailingProfit">+$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">📉 Potential Loss:</span>
+        <span class="result-value loss" id="trailingLoss">-$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">⚠️ Capital if SL Hits:</span>
+        <span class="result-value warning" id="trailingCapitalSL">$0.00</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">🔒 Secured Profit:</span>
+        <span class="result-value profit" id="securedProfit">+$0.00</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="result-row">
+        <span class="result-label">📊 ROI:</span>
+        <span class="result-value" id="trailingROI">0%</span>
+      </div>
+      
+      <div class="result-row">
+        <span class="result-label">⚖️ Risk/Reward:</span>
+        <span class="result-value" id="trailingRR">1:0</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mode selection
+    const tpSlBtn = document.getElementById('tpSlBtn');
+    const trailingBtn = document.getElementById('trailingBtn');
+    const trailingInput = document.getElementById('trailingInput');
+    const tpSlResult = document.getElementById('tpSlResult');
+    const trailingResult = document.getElementById('trailingResult');
+
+    tpSlBtn.addEventListener('click', () => {
+      tpSlBtn.classList.add('active');
+      trailingBtn.classList.remove('active');
+      trailingInput.style.display = 'none';
+      tpSlResult.style.display = 'block';
+      trailingResult.style.display = 'none';
+    });
+
+    trailingBtn.addEventListener('click', () => {
+      trailingBtn.classList.add('active');
+      tpSlBtn.classList.remove('active');
+      trailingInput.style.display = 'block';
+      tpSlResult.style.display = 'none';
+      trailingResult.style.display = 'block';
+    });
+
+    function calculateTrade() {
+      // Get common inputs
+      const entryPrice = parseFloat(document.getElementById("entryPrice").value);
+      const amount = parseFloat(document.getElementById("amount").value);
+      const targetProfit = parseFloat(document.getElementById("targetProfit").value);
+      const maxCapitalLoss = parseFloat(document.getElementById("maxCapitalLoss").value);
+      const asset = document.getElementById("asset").value;
+      
+      // Validate inputs
+      if ([entryPrice, amount, targetProfit, maxCapitalLoss].some(isNaN)) {
+        alert("⚠️ Please fill in all required fields with valid numbers.");
+        return;
+      }
+
+      // Calculate common values
+      const capital = entryPrice * amount;
+      const takeProfitPrice = entryPrice + (targetProfit / amount);
+      const stopLossPrice = entryPrice - (maxCapitalLoss / amount);
+      const capitalIfStopLoss = capital - maxCapitalLoss;
+      const roi = (targetProfit / capital) * 100;
+      const riskRewardRatio = targetProfit / maxCapitalLoss;
+
+      // Always calculate TP/SL results (they're needed for both modes)
+      document.getElementById("capitalValue").textContent = `$${capital.toFixed(2)}`;
+      document.getElementById("tpPrice").textContent = `$${takeProfitPrice.toFixed(6)}`;
+      document.getElementById("slPrice").textContent = `$${stopLossPrice.toFixed(6)}`;
+      document.getElementById("potentialProfit").textContent = `+$${targetProfit.toFixed(2)}`;
+      document.getElementById("potentialLoss").textContent = `-$${maxCapitalLoss.toFixed(2)}`;
+      document.getElementById("capitalIfSL").textContent = `$${capitalIfStopLoss.toFixed(2)}`;
+      document.getElementById("roiValue").textContent = `${roi.toFixed(2)}%`;
+      document.getElementById("rrRatio").textContent = `1:${riskRewardRatio.toFixed(2)}`;
+      tpSlResult.style.display = 'block';
+
+      // If in trailing stop mode, calculate those values too
+      if (trailingBtn.classList.contains('active')) {
+        const trailingDistance = parseFloat(document.getElementById("trailingDistance").value);
+        
+        if (isNaN(trailingDistance)) {
+          alert("⚠️ Please enter a valid trailing stop distance.");
+          return;
+        }
+
+        const trailingStopPrice = takeProfitPrice - trailingDistance;
+        const securedProfit = (trailingStopPrice - entryPrice) * amount;
+        
+        document.getElementById("trailingCapital").textContent = `$${capital.toFixed(2)}`;
+        document.getElementById("trailingTP").textContent = `$${takeProfitPrice.toFixed(6)}`;
+        document.getElementById("trailingSL").textContent = `$${stopLossPrice.toFixed(6)}`;
+        document.getElementById("activationPrice").textContent = `$${takeProfitPrice.toFixed(6)}`;
+        document.getElementById("trailingStopPrice").textContent = `$${trailingStopPrice.toFixed(6)}`;
+        document.getElementById("trailingProfit").textContent = `+$${targetProfit.toFixed(2)}`;
+        document.getElementById("trailingLoss").textContent = `-$${maxCapitalLoss.toFixed(2)}`;
+        document.getElementById("trailingCapitalSL").textContent = `$${capitalIfStopLoss.toFixed(2)}`;
+        document.getElementById("securedProfit").textContent = `+$${securedProfit.toFixed(2)}`;
+        document.getElementById("trailingROI").textContent = `${roi.toFixed(2)}%`;
+        document.getElementById("trailingRR").textContent = `1:${riskRewardRatio.toFixed(2)}`;
+        
+        trailingResult.style.display = 'block';
+        tpSlResult.style.display = 'none';
+      } else {
+        tpSlResult.style.display = 'block';
+        trailingResult.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
